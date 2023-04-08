@@ -2,6 +2,8 @@
 #define VIELIPC_DISPLAY_H
 
 void display_start_write_shared_memory(int &shm_fd, void *&ptr) {
+    usleep(100000 * BELT_WAITER);
+
     //O_RDONLY = 0000 < abre arquivo para leitura
     shm_fd = shm_open(MEMORY_NAME, O_RDONLY, MODE);
     if (shm_fd == -1) {
@@ -18,12 +20,16 @@ void display_start_write_shared_memory(int &shm_fd, void *&ptr) {
 
 void display_action() {
     printf("display\n");
+    size_t total = 0;
     int shm_fd = 0;
     void *ptr = nullptr;
     display_start_write_shared_memory(shm_fd, ptr);
     while (true) {
-        printf("%s\n", (char*)ptr);
-        sleep(1);
+        if (total != strlen((char*)ptr)) {
+            total = strlen((char*)ptr);
+            printf("%zu\n", total);
+        }
+        usleep(1000000 * DISPLAY_INTERVAL / INTERVAL_DIVIDER);
     }
 }
 

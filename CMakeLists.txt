@@ -3,4 +3,4 @@ project(VielIPC)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(VielIPC main.cpp belt.h global.h display.h)
+add_executable(VielIPC main.cpp belt.h global.h display.h weight.h)
