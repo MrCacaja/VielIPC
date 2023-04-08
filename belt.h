@@ -12,32 +12,33 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "iostream"
+#include <string.h>
 
-void start_write_shared_memory(int &shm_fd, void *&ptr) {
-    //O_CREAT = 0100 < cria arquivo se não existir
+void belt_start_write_shared_memory(int &shm_fd, void *&ptr) {
     //O_RDWR = 0010 < abre arquivo para leitura e escrita
-    //O_CREAT | O_RDWR = 0110 < faz ambos acima
-    //shm_fd < abre um segmento de memória com o nome escolhido (para sincronização), com as flags de leitura
-    shm_fd = shm_open(MEMORY_NAME, O_CREAT | O_RDWR, MODE);
+    //O_CREAT = 0100 < permite criação inicial do arquivo
+    shm_fd = shm_open(MEMORY_NAME,  O_RDWR | O_CREAT, MODE);
     if (shm_fd == -1) {
-        printf("shared memory failed\n");
+        printf("Esteira: memória compartilhada falhou\n");
         exit(-1);
     }
-    //Trunca o tamanho do arquivo no segmento
-    ftruncate(shm_fd, SIZE);
 
     ptr = mmap(0, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (ptr == MAP_FAILED) {
-        printf("Erro ao mapear memória\n");
+        printf("Esteira: Erro ao mapear memória\n");
         exit(-1);
     }
+    ftruncate(shm_fd,SIZE);
+    sleep(0.1);
 }
 
-void belt_action() {
+void belt_action(int med_weight, int interval) {
+    printf("belt %dKg | %ds interval\n", med_weight, interval);
     int shm_fd = 0;
-    void *ptr = nullptr;
-    start_write_shared_memory(shm_fd, ptr);
-    sprintf((char *)ptr, "dda");
+    void *ptr;
+    belt_start_write_shared_memory(shm_fd, ptr);
+    sprintf((char*)ptr, "mandando mensagem");
+    ptr = static_cast<char *>(ptr) + std::to_string(med_weight).length();
 }
 
 #endif //VIELIPC_BELT_H
