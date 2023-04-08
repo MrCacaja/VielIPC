@@ -1,10 +1,15 @@
 #ifndef VIELIPC_GLOBAL_H
 #define VIELIPC_GLOBAL_H
 
+// 0 - Memória compartilhada, 1 - Pipe, 2 - Thread
+#define IPC 0
+
 #define SIZE 500
 //0666 is the usual access permision in linux in rwx octal format and having the sequence(owner-group-user).
 #define MODE 0666
 #define MEMORY_NAME "FOOD_SEC"
+
+#define SOCKET_PATH "/tmp/food_sec"
 
 // 0 e 1 - esteiras
 #define BELT_COUNT 2

@@ -1,7 +1,15 @@
 #ifndef VIELIPC_DISPLAY_H
 #define VIELIPC_DISPLAY_H
 
-void display_start_write_shared_memory(int &shm_fd, void *&ptr) {
+void display_start_write_shared_memory_pipe() {
+
+}
+
+void display_action_pipe() {
+
+}
+
+void display_start_write_shared_memory_shm(int &shm_fd, void *&ptr) {
     usleep(100000 * BELT_WAITER);
 
     //O_RDONLY = 0000 < abre arquivo para leitura
@@ -18,12 +26,12 @@ void display_start_write_shared_memory(int &shm_fd, void *&ptr) {
     }
 }
 
-void display_action() {
+void display_action_shm() {
     printf("display\n");
     size_t total = 0;
     int shm_fd = 0;
     void *ptr = nullptr;
-    display_start_write_shared_memory(shm_fd, ptr);
+    display_start_write_shared_memory_shm(shm_fd, ptr);
     while (true) {
         if (total != strlen((char*)ptr)) {
             total = strlen((char*)ptr);

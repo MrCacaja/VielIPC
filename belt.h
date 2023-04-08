@@ -13,8 +13,16 @@
 #include <fcntl.h>
 #include "iostream"
 #include <string.h>
+#include <sys/socket.h>
 
-void belt_start_write_shared_memory(int &shm_fd, void *&ptr) {
+void belt_start_write_shared_memory_pipe() {
+}
+
+void belt_action_pipe(int med_weight, float interval) {
+
+}
+
+void belt_start_write_shared_memory_shm(int &shm_fd, void *&ptr) {
     //O_RDWR = 0010 < abre arquivo para leitura e escrita
     //O_CREAT = 0100 < permite criação inicial do arquivo
     shm_fd = shm_open(MEMORY_NAME,  O_RDWR | O_CREAT, MODE);
@@ -27,11 +35,11 @@ void belt_start_write_shared_memory(int &shm_fd, void *&ptr) {
     sprintf((char*)ptr, ""); //Limpa memória
 }
 
-void belt_action(int med_weight, float interval) {
+void belt_action_shm(int med_weight, float interval) {
     printf("belt %dKg | %fs interval\n", med_weight, interval);
     int shm_fd = 0;
     void *ptr;
-    belt_start_write_shared_memory(shm_fd, ptr);
+    belt_start_write_shared_memory_shm(shm_fd, ptr);
     while (true) {
         while (strlen((char*)ptr) < SIZE) {
             sprintf((char*)ptr, "%s%d", (char*)ptr, med_weight);

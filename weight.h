@@ -1,7 +1,15 @@
 #ifndef VIELIPC_WEIGHT_H
 #define VIELIPC_WEIGHT_H
 
-void weight_start_write_shared_memory(int &shm_fd, void *&ptr) {
+void weight_start_write_shared_memory_pipe() {
+
+}
+
+void weight_action_pipe() {
+
+}
+
+void weight_start_write_shared_memory_shm(int &shm_fd, void *&ptr) {
     usleep(100000 * BELT_WAITER);
 
     //O_RDWR = 0010 < abre arquivo para leitura e escritura
@@ -18,12 +26,12 @@ void weight_start_write_shared_memory(int &shm_fd, void *&ptr) {
     }
 }
 
-void weight_action() {
+void weight_action_shm() {
     int remaining_reruns = TOTAL_WEIGHT_RERUNS;
     int shm_fd = 0;
     int total_weight = 0;
     void *ptr = nullptr;
-    weight_start_write_shared_memory(shm_fd, ptr);
+    weight_start_write_shared_memory_shm(shm_fd, ptr);
     while (true) {
         if (strlen((char*)ptr) >= SIZE) {
             int weight = 0;
