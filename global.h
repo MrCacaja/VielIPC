@@ -30,5 +30,6 @@
 #define UNLOCKED_MESSAGE "1"
 #define LOCKED_MESSAGE "0"
 #define CHECK_PERMISSION "C"
+#define GET_ITEMS "G"
 
 #endif //VIELIPC_GLOBAL_H

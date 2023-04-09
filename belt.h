@@ -24,7 +24,7 @@ void belt_start_write_pipe(int &sockfd) {
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
     if (sockfd < 0)
     {
-        perror("Falha em criar o socket");
+        perror("Esteira: Falha em criar o socket");
         exit(1);
     }
 
