@@ -18,7 +18,7 @@
 // 3 - balança
 #define WEIGHT_COUNT 1
 
-#define INTERVAL_DIVIDER 150
+#define INTERVAL_DIVIDER 10
 #define WEIGHT_INTERVAL 5
 #define DISPLAY_INTERVAL 2
 #define BELT_INTERVAL 2

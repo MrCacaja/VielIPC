@@ -94,7 +94,7 @@ void initialize_processes_pipe(pid_t* pids) {
         //Configuração de timeout de leitura
         struct timeval tv;
         tv.tv_sec = 0;
-        tv.tv_usec = 10;
+        tv.tv_usec = 1;
         setsockopt(i, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 
         printf("Cliente conectado!\n");

@@ -31,7 +31,6 @@ void display_start_write_pipe(int &sockfd) {
 void display_action_pipe() {
     char buffer[SIZE];
     int sockfd = 0;
-    bool first_check;
     display_start_write_pipe(sockfd);
 
     while (true) {
@@ -46,6 +45,7 @@ void display_action_pipe() {
             close(sockfd);
             exit(1);
         }
+        //Buffer vem com caracteres adicionais quando completo, considerar a contagem de itens máxima -2
         printf("Contagem de itens: %lu\n", strlen(buffer));
         usleep(1000000 * DISPLAY_INTERVAL / INTERVAL_DIVIDER);
     }
