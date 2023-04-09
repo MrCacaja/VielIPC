@@ -18,16 +18,17 @@
 // 3 - balança
 #define WEIGHT_COUNT 1
 
-#define INTERVAL_DIVIDER 100
+#define INTERVAL_DIVIDER 150
 #define WEIGHT_INTERVAL 5
 #define DISPLAY_INTERVAL 2
 #define BELT_INTERVAL 2
 #define BELT_WAITER 3
+#define PC_INTERVAL 0.5
 
 #define TOTAL_WEIGHT_RERUNS 0
 
-#define BELT_MESSAGE "0"
 #define UNLOCKED_MESSAGE "1"
 #define LOCKED_MESSAGE "0"
+#define CHECK_PERMISSION "C"
 
 #endif //VIELIPC_GLOBAL_H

@@ -31,9 +31,10 @@ void initialize_processes_shm(pid_t* pids) {
 
 void initialize_processes_pipe(pid_t* pids) {
     printf("Rodando com pipe\n");
-    int sockfd, newsockfd, len;
+    int sockfd, len;
+    int newsockfd[BELT_COUNT];
     struct sockaddr_un local, remote;
-    char buffer[1024];
+    char buffer[1];
     string weight_list;
 
     // Create socket
@@ -58,8 +59,7 @@ void initialize_processes_pipe(pid_t* pids) {
     }
 
     // Listen for connections
-    if (listen(sockfd, 5) < 0)
-    {
+    if (listen(sockfd, 5) < 0) {
         perror("Falha em escutar o socket");
         close(sockfd);
         exit(1);
@@ -82,51 +82,57 @@ void initialize_processes_pipe(pid_t* pids) {
         }
     }
 
-    while (true) {
-        // Accept connections
+    for (int & i : newsockfd) {
         memset(&remote, 0, sizeof(remote));
         len = sizeof(remote);
-        newsockfd = accept(sockfd, (struct sockaddr *)&remote, (socklen_t*)&len);
-        if (newsockfd < 0)
-        {
+        i = accept(sockfd, (struct sockaddr *)&remote, (socklen_t*)&len);
+        if (i < 0) {
             perror("Falha em aceitar coneccao");
             close(sockfd);
             exit(1);
         }
+        //Configuração de timeout de leitura
+        struct timeval tv;
+        tv.tv_sec = 0;
+        tv.tv_usec = 10;
+        setsockopt(i, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof tv);
 
         printf("Cliente conectado!\n");
+    }
 
-        memset(buffer, 0, sizeof buffer);
-        // Read data from client
-        if (read(newsockfd, buffer, sizeof(buffer)) < 0)
-        {
-            perror("Falha em ler do socket");
-            close(newsockfd);
-            close(sockfd);
-            exit(1);
-        }
+    while (true) {
+        for (int i = 0; i < BELT_COUNT; i++) {
+            int socket = newsockfd[i];
+            // Read data from client
+            memset(buffer, 0, sizeof buffer);
+            if (read(socket, buffer, sizeof(buffer)) < 0) {
+                //Não reporta erro porque o timeout é considerado um erro, e apenas deve ser pulado
+                continue;
+            }
 
-        if (!buffer[0]) {
-            continue;
-        }
+            if (!buffer[0]) {
+                continue;
+            }
 
-        if ((char)buffer[0] == BELT_MESSAGE[0]) {
-            printf("Dado recebido de esteira: %s\n", buffer);
-            if (weight_list.length() < 500) {
-                weight_list.append(to_string(buffer[1]));
-                if (write(newsockfd, "1", 1) < 0) {
-                    perror("Falha em escrever no socket");
-                    close(newsockfd);
-                    close(sockfd);
-                    exit(1);
-                }
-            } else {
-                weight_list.append(to_string(buffer[1]));
-                if (write(newsockfd, "0", 1) < 0) {
-                    perror("Falha em escrever no socket");
-                    close(newsockfd);
-                    close(sockfd);
-                    exit(1);
+            if (i < BELT_COUNT) {
+                if ((char)buffer[0] == CHECK_PERMISSION[0]) {
+                    if (weight_list.length() < 500) {
+                        if (write(socket, "1", 1) < 0) {
+                            perror("Falha em escrever no socket");
+                            close(socket);
+                            close(sockfd);
+                            exit(1);
+                        }
+                    } else {
+                        if (write(socket, "0", 1) < 0) {
+                            perror("Falha em escrever no socket");
+                            close(socket);
+                            close(sockfd);
+                            exit(1);
+                        }
+                    }
+                } else {
+                    weight_list.push_back(buffer[0]);
                 }
             }
         }
@@ -151,7 +157,7 @@ void initialize_processes_pipe(pid_t* pids) {
     }
 
     // Close sockets and exit
-    close(newsockfd);
+    for (int & i : newsockfd) close(i);
     close(sockfd);
     exit(0);
 }
