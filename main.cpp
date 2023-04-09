@@ -32,7 +32,7 @@ void initialize_processes_shm(pid_t* pids) {
 void initialize_processes_pipe(pid_t* pids) {
     printf("Rodando com pipe\n");
     int sockfd, len;
-    int newsockfd[BELT_COUNT + DISPLAY_COUNT];
+    int newsockfd[BELT_COUNT + DISPLAY_COUNT + WEIGHT_COUNT];
     struct sockaddr_un local, remote;
     char buffer[1];
     string weight_list;
@@ -101,7 +101,7 @@ void initialize_processes_pipe(pid_t* pids) {
     }
 
     while (true) {
-        for (int i = 0; i < BELT_COUNT + DISPLAY_COUNT; i++) {
+        for (int i = 0; i < BELT_COUNT + DISPLAY_COUNT + WEIGHT_COUNT; i++) {
             int socket = newsockfd[i];
             // Read data from client
             memset(buffer, 0, sizeof buffer);
@@ -142,6 +142,23 @@ void initialize_processes_pipe(pid_t* pids) {
                         close(sockfd);
                         exit(1);
                     }
+                }
+            } else {
+                if ((char)buffer[0] == GET_ITEMS[0]) {
+                    if (write(socket, weight_list.c_str(), SIZE) < 0) {
+                        perror("Falha em escrever no socket");
+                        close(socket);
+                        close(sockfd);
+                        exit(1);
+                    }
+                } else if ((char)buffer[0] == KILL[0]) {
+                    for (int p = 0; p < WEIGHT_COUNT + DISPLAY_COUNT + BELT_COUNT; p++) {
+                        kill(pids[p], SIGTERM);
+                    }
+                    printf("Finalizado\n");
+                    exit(0);
+                } else if ((char)buffer[0] == RESTART[0]) {
+                    weight_list = "";
                 }
             }
         }

@@ -1,12 +1,78 @@
 #ifndef VIELIPC_WEIGHT_H
 #define VIELIPC_WEIGHT_H
 
-void weight_start_write_pipe() {
+void weight_start_write_pipe(int &sockfd) {
+    int len;
+    struct sockaddr_un remote;
 
+    // Create socket
+    sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (sockfd < 0)
+    {
+        perror("Balança: Falha em criar o socket");
+        exit(1);
+    }
+
+    // Connect to server
+    memset(&remote, 0, sizeof(remote));
+    remote.sun_family = AF_UNIX;
+    strncpy(remote.sun_path, SOCKET_PATH, sizeof(remote.sun_path) - 1);
+    len = strlen(remote.sun_path) + sizeof(remote.sun_family);
+    if (connect(sockfd, (struct sockaddr *)&remote, len) < 0)
+    {
+        perror("Balança: Falha em conectar no servidor");
+        close(sockfd);
+        exit(1);
+    }
+
+    printf("Balança conectada ao computador!\n");
 }
 
 void weight_action_pipe() {
+    int remaining_reruns = TOTAL_WEIGHT_RERUNS;
+    int total_weight = 0;
+    char buffer[SIZE];
+    int sockfd = 0;
 
+    weight_start_write_pipe(sockfd);
+
+    while (true) {
+        if (write(sockfd, GET_ITEMS, 1) < 0) {
+            perror("Display: Falha em escrever no socket");
+            close(sockfd);
+            exit(1);
+        }
+        memset(buffer, 0, sizeof buffer);
+        if (read(sockfd, buffer, sizeof(buffer)) < 0){
+            perror("Display: Falha em ler do socket");
+            close(sockfd);
+            exit(1);
+        }
+
+        if (strlen(buffer) >= SIZE) {
+            int weight = 0;
+            for (int i = 0; i < strlen(buffer); i++) {
+                weight += ((buffer)[i] - 48);
+            }
+            total_weight += weight;
+            printf("Peso: %dkg\n", weight);
+            printf("Peso total: %dkg\n", total_weight);
+            remaining_reruns--;
+            if (remaining_reruns < 0){
+                if (write(sockfd, KILL, 1) < 0) {
+                    perror("Display: Falha em escrever no socket");
+                    close(sockfd);
+                    exit(1);
+                }
+            } else if (write(sockfd, RESTART, 1) < 0) {
+                perror("Display: Falha em escrever no socket");
+                close(sockfd);
+                exit(1);
+            }
+        }
+
+        usleep(1000000 * WEIGHT_INTERVAL / INTERVAL_DIVIDER);
+    }
 }
 
 void weight_start_write_shared_memory_shm(int &shm_fd, void *&ptr) {

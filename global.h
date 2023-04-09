@@ -31,5 +31,7 @@
 #define LOCKED_MESSAGE "0"
 #define CHECK_PERMISSION "C"
 #define GET_ITEMS "G"
+#define KILL "K"
+#define RESTART "R"
 
 #endif //VIELIPC_GLOBAL_H
