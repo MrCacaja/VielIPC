@@ -7,6 +7,7 @@
 #include "weight.h"
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <pthread.h>
 
 using namespace std;
 
@@ -162,34 +163,29 @@ void initialize_processes_pipe(pid_t* pids) {
                 }
             }
         }
-//
-//        // Process data
-//        // In this example, we just convert the string to uppercase
-//        for (int i = 0; i < strlen(buffer); i++)
-//        {
-//            buffer[i] = toupper(buffer[i]);
-//        }
-//
-//        // Write processed data back to client
-//        if (write(newsockfd, buffer, strlen(buffer) + 1) < 0)
-//        {
-//            perror("Falha em escrever no socket");
-//            close(newsockfd);
-//            close(sockfd);
-//            exit(1);
-//        }
-//
-//        printf("Dado enviado de volta para o cliente.\n");
     }
-
-    // Close sockets and exit
-    for (int & i : newsockfd) close(i);
-    close(sockfd);
-    exit(0);
 }
 
 void initialize_processes_thread() {
     printf("Rodando com threads\n");
+    pthread_t threads[BELT_COUNT + WEIGHT_COUNT + DISPLAY_COUNT];
+
+    for (int i = 0; i < BELT_COUNT + DISPLAY_COUNT + WEIGHT_COUNT; i++) {
+        if (i < BELT_COUNT) {
+            struct belt_thread_args *args = (struct belt_thread_args *)malloc(sizeof(struct belt_thread_args));
+            //i * 3 + 2 porque i == 0: 2kg, i == 1 : 5kg
+            args->med_weight = (i * 3) + 2;
+            args->interval = i + 1;
+            pthread_create(&threads[i], NULL, belt_thread, (void*)args);
+        } else if (i < BELT_COUNT + DISPLAY_COUNT) {
+            pthread_create(&threads[i], NULL, display_thread, NULL);
+        } else {
+            pthread_create(&threads[i], NULL, weight_thread, NULL);
+        }
+    }
+
+    pthread_join(threads[BELT_COUNT + WEIGHT_COUNT + DISPLAY_COUNT - 1], NULL);
+    ::printf("%s\n", items.c_str());
 }
 
 int main(){

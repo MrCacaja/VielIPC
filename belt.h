@@ -16,6 +16,21 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+struct belt_thread_args {
+    int med_weight;
+    float interval;
+};
+
+void* belt_thread(void* args) {
+    while (true) {
+        belt_thread_args *arg_ref = ((struct belt_thread_args*)args);
+        pthread_mutex_lock(&item_mutex);
+        if (items.length() < 500) items.push_back(48 + arg_ref->med_weight);
+        pthread_mutex_unlock(&item_mutex);
+        usleep(arg_ref->interval * 1000000 / INTERVAL_DIVIDER);
+    }
+}
+
 void belt_start_write_pipe(int &sockfd) {
     int len;
     struct sockaddr_un remote;

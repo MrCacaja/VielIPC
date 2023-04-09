@@ -1,6 +1,31 @@
 #ifndef VIELIPC_WEIGHT_H
 #define VIELIPC_WEIGHT_H
 
+void* weight_thread(void*) {
+    int remaining_reruns = TOTAL_WEIGHT_RERUNS;
+    int total_weight = 0;
+    while (true) {
+        pthread_mutex_lock(&item_mutex);
+        if (items.length() >= SIZE) {
+            int weight = 0;
+            for (char item : items) {
+                weight += item - 48;
+            }
+            total_weight += weight;
+            printf("Peso: %dkg\n", weight);
+            printf("Peso total: %dkg\n", total_weight);
+            remaining_reruns--;
+            if (remaining_reruns < 0){
+                break;
+            } else {
+                items = "";
+            }
+        }
+        pthread_mutex_unlock(&item_mutex);
+        usleep(1000000 * WEIGHT_INTERVAL / INTERVAL_DIVIDER);
+    }
+}
+
 void weight_start_write_pipe(int &sockfd) {
     int len;
     struct sockaddr_un remote;

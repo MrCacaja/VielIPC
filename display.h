@@ -1,6 +1,15 @@
 #ifndef VIELIPC_DISPLAY_H
 #define VIELIPC_DISPLAY_H
 
+void* display_thread(void* args) {
+    while (true) {
+        pthread_mutex_lock(&item_mutex);
+        printf("%zu\n", items.length());
+        pthread_mutex_unlock(&item_mutex);
+        usleep(1000000 * DISPLAY_INTERVAL / INTERVAL_DIVIDER);
+    }
+}
+
 void display_start_write_pipe(int &sockfd) {
     int len;
     struct sockaddr_un remote;
