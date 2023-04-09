@@ -1,7 +1,7 @@
 #ifndef VIELIPC_DISPLAY_H
 #define VIELIPC_DISPLAY_H
 
-void display_start_write_shared_memory_pipe() {
+void display_start_write_pipe() {
 
 }
 

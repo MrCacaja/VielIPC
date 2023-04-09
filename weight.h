@@ -1,7 +1,7 @@
 #ifndef VIELIPC_WEIGHT_H
 #define VIELIPC_WEIGHT_H
 
-void weight_start_write_shared_memory_pipe() {
+void weight_start_write_pipe() {
 
 }
 

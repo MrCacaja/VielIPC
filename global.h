@@ -2,7 +2,7 @@
 #define VIELIPC_GLOBAL_H
 
 // 0 - Memória compartilhada, 1 - Pipe, 2 - Thread
-#define IPC 0
+#define IPC 1
 
 #define SIZE 500
 //0666 is the usual access permision in linux in rwx octal format and having the sequence(owner-group-user).
@@ -25,5 +25,9 @@
 #define BELT_WAITER 3
 
 #define TOTAL_WEIGHT_RERUNS 0
+
+#define BELT_MESSAGE "0"
+#define UNLOCKED_MESSAGE "1"
+#define LOCKED_MESSAGE "0"
 
 #endif //VIELIPC_GLOBAL_H
