@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <pthread.h>
+#include <chrono>
 
 using namespace std;
 
@@ -101,12 +102,20 @@ void initialize_processes_pipe(pid_t* pids) {
         printf("Cliente conectado!\n");
     }
 
+    float lost_time = 0;
+    int miss_count = 0;
+    chrono::time_point begin = chrono::steady_clock::now();
     while (true) {
         for (int i = 0; i < BELT_COUNT + DISPLAY_COUNT + WEIGHT_COUNT; i++) {
             int socket = newsockfd[i];
             // Read data from client
             memset(buffer, 0, sizeof buffer);
             if (read(socket, buffer, sizeof(buffer)) < 0) {
+                if (lost_time == 0) {
+                    chrono::time_point end = chrono::steady_clock::now();
+                    lost_time = chrono::duration_cast<chrono::microseconds>(end - begin).count() / (float)1000000;
+                }
+                miss_count++;
                 //Não reporta erro porque o timeout é considerado um erro, e apenas deve ser pulado
                 continue;
             }
@@ -156,7 +165,13 @@ void initialize_processes_pipe(pid_t* pids) {
                     for (int p = 0; p < WEIGHT_COUNT + DISPLAY_COUNT + BELT_COUNT; p++) {
                         kill(pids[p], SIGTERM);
                     }
-                    printf("Finalizado\n");
+                    chrono::time_point end = chrono::steady_clock::now();
+                    printf(
+                            "Finalizado em %fs, com %d intruções vazias no servidor, sendo %fs o tempo médio para não retornar mensagens",
+                            chrono::duration_cast<chrono::microseconds>(end - begin).count() / (float)1000000,
+                            miss_count,
+                            lost_time
+                            );
                     exit(0);
                 } else if ((char)buffer[0] == RESTART[0]) {
                     weight_list = "";
@@ -170,6 +185,7 @@ void initialize_processes_thread() {
     printf("Rodando com threads\n");
     pthread_t threads[BELT_COUNT + WEIGHT_COUNT + DISPLAY_COUNT];
 
+    chrono::time_point begin = chrono::steady_clock::now();
     for (int i = 0; i < BELT_COUNT + DISPLAY_COUNT + WEIGHT_COUNT; i++) {
         if (i < BELT_COUNT) {
             struct belt_thread_args *args = (struct belt_thread_args *)malloc(sizeof(struct belt_thread_args));
@@ -185,19 +201,22 @@ void initialize_processes_thread() {
     }
 
     pthread_join(threads[BELT_COUNT + WEIGHT_COUNT + DISPLAY_COUNT - 1], NULL);
-    ::printf("%s\n", items.c_str());
+    chrono::time_point end = chrono::steady_clock::now();
+    printf("Finalizado em %f segundos", chrono::duration_cast<chrono::microseconds>(end - begin).count() / (float)1000000);
 }
 
 int main(){
     pid_t pids[BELT_COUNT + DISPLAY_COUNT + WEIGHT_COUNT];
     if (IPC == 0){
+        chrono::time_point begin = chrono::steady_clock::now();
         initialize_processes_shm(pids);
         int status;
         waitpid(pids[BELT_COUNT + DISPLAY_COUNT + WEIGHT_COUNT - 1], &status, WUNTRACED);
         for (int pid : pids) {
             kill(pid, SIGTERM);
         }
-        printf("Finalizado com status %d", status);
+        chrono::time_point end = chrono::steady_clock::now();
+        printf("Finalizado com status %d em %f segundos", status, chrono::duration_cast<chrono::microseconds>(end - begin).count() / (float)1000000);
     } else if (IPC == 1) {
         initialize_processes_pipe(pids);
     } else {
